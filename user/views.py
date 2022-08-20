@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from .models import User
+from django.contrib.auth import authenticate
 import json
 import logging
 
@@ -16,9 +17,7 @@ def user_registration(request):
     try:
         if request.method == 'POST':
             data = json.loads(request.body)
-            User.objects.create(username=data.get('user_name'), email=data.get('email'),
-                                password=data.get('password'), phone=data.get('phone'),
-                                location=data.get('location'))
+            User.objects.create_user(**data)
             return JsonResponse({"message": "User added Successfully"})
         return JsonResponse({"message": "Invalid Request"})
     except Exception as ex:
@@ -33,9 +32,8 @@ def user_login(request):
     try:
         if request.method == 'POST':
             data = json.loads(request.body)
-            user_object = User.objects.filter(username=data.get('username'))
-            user_data = user_object.first()
-            if user_data.username == data.get('username') and user_data.password == data.get('password'):
+            user = authenticate(username=data.get('username'), password=data.get('password'))
+            if user is not None:
                 return JsonResponse({"message": "User Login Successful"})
             return JsonResponse({"message": "Invalid Credentials"})
         return JsonResponse({"message": "Invalid Request"})
