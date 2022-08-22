@@ -1,42 +1,52 @@
 from django.shortcuts import render
-from django.http import JsonResponse
-from .models import User
 from django.contrib.auth import authenticate
-import json
+from .models import User
+from .serializers import RegisterSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
 import logging
+from rest_framework import status
 
 logging.basicConfig(filename='fundoo_note.log', encoding='utf-8', level=logging.DEBUG,
                     format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 logger = logging.getLogger()
 
 
-def user_registration(request):
+class UserRegistration(APIView):
     """
-    This function add the user to the database
+    This class use to register user to the database
     """
-    try:
-        if request.method == 'POST':
-            data = json.loads(request.body)
-            User.objects.create_user(**data)
-            return JsonResponse({"message": "User added Successfully"})
-        return JsonResponse({"message": "Invalid Request"})
-    except Exception as ex:
-        logger.exception(ex)
-        return JsonResponse({"message": ex})
+    def post(self, request):
+        """
+        This method add the user to the database
+        :param request: Json
+        """
+        try:
+            serializer = RegisterSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({"message": "Created", "status": 201, "data": serializer.data},
+                            status=status.HTTP_201_CREATED)
+        except Exception as ex:
+            logger.exception(ex)
+            return Response({"message": str(ex), "status": 400, "data": {}}, status=status.HTTP_400_BAD_REQUEST)
 
 
-def user_login(request):
+class UserLogin(APIView):
     """
-    This function checks the user in the database
+    This class check the user in the database
     """
-    try:
-        if request.method == 'POST':
-            data = json.loads(request.body)
-            user = authenticate(username=data.get('username'), password=data.get('password'))
-            if user is not None:
-                return JsonResponse({"message": "User Login Successful"})
-            return JsonResponse({"message": "Invalid Credentials"})
-        return JsonResponse({"message": "Invalid Request"})
-    except Exception as ex:
-        logger.exception(ex)
-        return JsonResponse({"message": ex})
+    def post(self, request):
+        """
+        This method use to log in the user
+        :param request: Json
+        """
+        try:
+            user = authenticate(**request.data)
+            if not user:
+                raise Exception("Invalid Credentials")
+            return Response({"message": "Login Successful", "status": 202, "data": {}},
+                            status=status.HTTP_202_ACCEPTED)
+        except Exception as ex:
+            logger.exception(ex)
+            return Response({"message": str(ex), "status": 400, "data": {}}, status=status.HTTP_400_BAD_REQUEST)
