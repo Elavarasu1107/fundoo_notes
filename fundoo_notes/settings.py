@@ -141,3 +141,4 @@ EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD')
 BASE_URL = environ.get('BASE_URL', "http://localhost:8000")
 
 JWT_EXP = datetime.utcnow() + timedelta(minutes=60)
+REDIS_CONFIG = {"host": 'localhost', "port": 6379, "db": 0}
