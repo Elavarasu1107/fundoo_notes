@@ -9,6 +9,8 @@ from .utils import JWT
 from django.conf import settings
 from django.core.mail import send_mail
 from rest_framework.reverse import reverse
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 logging.basicConfig(filename='fundoo_note.log', encoding='utf-8', level=logging.DEBUG,
                     format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -19,6 +21,7 @@ class UserRegistration(APIView):
     """
     This class use to register user to the database
     """
+    @swagger_auto_schema(operation_summary='Register User', request_body=RegisterSerializer)
     def post(self, request):
         """
         This method add the user to the database
@@ -31,9 +34,8 @@ class UserRegistration(APIView):
             token = JWT.encode({"user_id": serializer.data.get("id"), "username": serializer.data.get('username')})
             send_mail(subject="Fundoo Notes-Registration",
                       message=settings.BASE_URL + reverse('verify', kwargs={"token": token}),
-                      from_email=settings.EMAIL_HOST_USER,
-                      recipient_list=[serializer.data.get('email')],
-                      fail_silently=False)
+                      from_email=None,
+                      recipient_list=[serializer.data.get('email')])
             return Response({"message": "Created", "status": 201, "data": serializer.data},
                             status=status.HTTP_201_CREATED)
         except Exception as ex:
@@ -45,6 +47,7 @@ class UserLogin(APIView):
     """
     This class check the user in the database
     """
+    @swagger_auto_schema(operation_summary='Login User', request_body=LoginSerializer)
     def post(self, request):
         """
         This method use to log in the user
@@ -65,6 +68,7 @@ class UserVerification(APIView):
     """
     This class verify the user in the database
     """
+    @swagger_auto_schema(operation_summary='Verify User')
     def get(self, request, token):
         try:
             decode = JWT.decode(token)
