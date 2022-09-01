@@ -5,6 +5,8 @@ from .models import Notes
 from user.utils import verify_token
 from rest_framework.response import Response
 from rest_framework import status
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 import logging
 
 logging.basicConfig(filename='fundoo_note.log', encoding='utf-8', level=logging.DEBUG,
@@ -16,6 +18,8 @@ class Note(APIView):
     """
     This class performs CRUD for Notes model
     """
+
+    @swagger_auto_schema(request_body=NoteSerializer, operation_summary='Post Notes')
     @verify_token
     def post(self, request):
         """
@@ -31,6 +35,7 @@ class Note(APIView):
             logger.exception(ex)
             return Response({"message": str(ex), "status": 400, "data": {}}, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(operation_summary='Get Notes')
     @verify_token
     def get(self, request):
         """
@@ -45,6 +50,14 @@ class Note(APIView):
             logger.exception(ex)
             return Response({"message": str(ex), "status": 400, "data": {}}, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(request_body=openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                     properties={'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                                                 'title': openapi.Schema(type=openapi.TYPE_STRING),
+                                                                 'description': openapi.Schema(
+                                                                     type=openapi.TYPE_STRING),
+                                                                 'color': openapi.Schema(type=openapi.TYPE_STRING)},
+                                                     required=['id', 'title', 'description', 'color']),
+                         operation_summary='Update Notes')
     @verify_token
     def put(self, request):
         """
@@ -61,6 +74,10 @@ class Note(APIView):
             logger.exception(ex)
             return Response({"message": str(ex), "status": 400, "data": {}}, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(request_body=openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                     properties={'id': openapi.Schema(type=openapi.TYPE_INTEGER)},
+                                                     required=['id']),
+                         operation_summary='Delete Notes')
     @verify_token
     def delete(self, request):
         """
