@@ -11,6 +11,7 @@ from django.core.mail import send_mail
 from rest_framework.reverse import reverse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from .tasks import email_sender
 
 logging.basicConfig(filename='fundoo_note.log', encoding='utf-8', level=logging.DEBUG,
                     format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -32,10 +33,7 @@ class UserRegistration(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             token = JWT.encode({"user_id": serializer.data.get("id"), "username": serializer.data.get('username')})
-            send_mail(subject="Fundoo Notes-Registration",
-                      message=settings.BASE_URL + reverse('verify', kwargs={"token": token}),
-                      from_email=None,
-                      recipient_list=[serializer.data.get('email')])
+            email_sender.delay(token=token, recipient=serializer.data.get('email'))
             return Response({"message": "Created", "status": 201, "data": serializer.data},
                             status=status.HTTP_201_CREATED)
         except Exception as ex:
