@@ -7,3 +7,4 @@ class Notes(models.Model):
     description = models.TextField()
     color = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    collaborator = models.ManyToManyField(User, related_name='collaborator')
