@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from .utils import JWT
+from .utils import JWT, TokenRole
 
 
 class User(AbstractUser):
@@ -10,7 +10,7 @@ class User(AbstractUser):
 
     @property
     def token(self):
-        return JWT.encode({"user_id": self.id, "username": self.username})
+        return JWT.encode({"user_id": self.id, "username": self.username, "role": TokenRole.auth.value})
 
 
 class UserLog(models.Model):
