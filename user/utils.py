@@ -1,10 +1,18 @@
 import logging
 import jwt
 from django.conf import settings
+from enum import Enum
 
 logging.basicConfig(filename='fundoo_note.log', encoding='utf-8', level=logging.DEBUG,
                     format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 logger = logging.getLogger()
+
+
+class TokenRole(Enum):
+    default = 'null'
+    auth = 'Auth'
+    verify_user = 'VerifyUser'
+    forgot_password = 'ForgotPassword'
 
 
 class JWT:
@@ -14,6 +22,8 @@ class JWT:
         This method return encoded token for user data
         """
         try:
+            if "role" not in payload.keys():
+                payload.update(role=TokenRole.default.value)
             if not isinstance(payload, dict):
                 raise Exception("Payload should be in dict")
             payload.update(exp=settings.JWT_EXP)
@@ -44,6 +54,8 @@ def verify_token(function):
         if not token:
             raise Exception("Auth token required")
         decode = JWT.decode(token=token)
+        if decode.get('role') != TokenRole.auth.value:
+            raise Exception("Invalid token role")
         user_id = decode.get('user_id')
         if not user_id:
             raise Exception("User not found")

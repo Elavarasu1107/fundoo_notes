@@ -31,12 +31,9 @@ class LoginSerializer(serializers.Serializer):
     token = serializers.CharField(read_only=True, max_length=255)
 
     def create(self, validated_data):
-        try:
-            user = authenticate(**validated_data)
-            if not user:
-                raise Exception("Invalid Credentials")
-            if user.is_verified == 0:
-                raise Exception("Invalid User")
-            return user
-        except Exception as ex:
-            logger.exception(ex)
+        user = authenticate(**validated_data)
+        if not user:
+            raise Exception("Invalid Credentials")
+        if user.is_verified == 0:
+            raise Exception("Invalid User")
+        return user
